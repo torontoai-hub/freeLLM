@@ -1,0 +1,35 @@
+[project]
+name = "llm-proxy"
+version = "0.1.0"
+description = "OpenAI-compatible proxy for Ollama and vLLM"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
+    "python-dotenv",
+    "orjson",
+]
+
+[project.optional-dependencies]
+redis = ["redis"]
+
+[project.urls]
+homepage = "https://example.com"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["."]
