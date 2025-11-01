@@ -1,0 +1,8 @@
+model: ollama/llama3
+model_list:
+  - model_name: ollama/llama3.2
+    litellm_params:
+      model: ollama/llama3.2
+      api_base: http://chat.torontoai.io:11434
+      api_key: torontoai   # not required, but LiteLLM expects a field
+      model_type: ollama
