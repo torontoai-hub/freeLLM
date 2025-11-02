@@ -1,0 +1,7 @@
+---
+- name: Harden firewall for Docker host (Ubuntu 22 & 24) with proper prerequisites
+  hosts: vllm_server
+  become: true
+  gather_facts: true
+  roles:
+    - firewall

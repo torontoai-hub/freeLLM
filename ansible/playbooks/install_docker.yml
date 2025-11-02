@@ -1,0 +1,7 @@
+---
+- name: Install Docker CE on Ubuntu 22/24
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - docker_install
