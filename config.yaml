@@ -1,8 +1,31 @@
-model: ollama/llama3
+# litellm.config.yaml
+general_settings:
+  master_key: torontoai        # change if you like
+  # require_api_key: false     # uncomment for no-auth local testing
+
+# Optional default model
+model: ollama/llama3.2
+
 model_list:
+  # ====== OLLAMA (local) ======
   - model_name: ollama/llama3.2
     litellm_params:
       model: ollama/llama3.2
-      api_base: http://chat.torontoai.io:11434
-      api_key: torontoai   # not required, but LiteLLM expects a field
       model_type: ollama
+      api_base: http://localhost:11434
+      api_key: torontoai-ollama-llama3.2    
+      timeout: 120
+
+  # ====== vLLM (remote) ======
+  - model_name: Qwen/Qwen3-0.6B     # your friendly name exposed by LiteLLM
+    litellm_params:
+      # Use openai-provider style and point it to vLLM's /v1 endpoint
+      model: openai/Qwen/Qwen3-0.6B # MUST match exactly what /v1/models returns
+      api_base: http://{{vllm_server1}}:8001/v1
+      api_key: torontoai-vllm-qwen                   # placeholder; vLLM ignores it, LiteLLM expects it
+      timeout: 120
+
+router_settings:
+  default_litellm_params:
+    temperature: 0.2
+    max_tokens: 1024
