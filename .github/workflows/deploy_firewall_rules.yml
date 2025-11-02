@@ -1,0 +1,67 @@
+name: Deploy Firewall
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      TARGET_HOST: ${{ vars.TARGET_HOST }}
+      TARGET_USER: ${{ vars.TARGET_USER }}
+      # JSON array string like: ["1.2.3.4","5.6.7.0/24"]
+      ALLOWED_8001_CIDRS: ${{ vars.ALLOWED_8001_CIDRS }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+          ansible --version
+
+      - name: Install required Ansible collections
+        run: |
+          ansible-galaxy collection install community.general
+
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # Pre-populate known_hosts to avoid prompts
+          ssh-keyscan -H "$TARGET_HOST" >> ~/.ssh/known_hosts
+
+      - name: Write inventory
+        run: |
+          cat > hosts.ini <<EOF
+          [vllm_server]
+          ${TARGET_HOST} ansible_user=${TARGET_USER} ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+          echo "Inventory:"
+          cat hosts.ini
+
+      - name: Show provided variables (redacted)
+        run: |
+          echo "TARGET_HOST: $TARGET_HOST"
+          echo "TARGET_USER: $TARGET_USER"
+          echo "ALLOWED_8001_CIDRS: $ALLOWED_8001_CIDRS"
+
+      - name: Dry-run (syntax check)
+        run: |
+          ansible-playbook -i hosts.ini firewall_config.yml --syntax-check
+
+      - name: Run firewall playbook
+        # Pass JSON array directly as an extra var
+        run: |
+          ansible-playbook -i hosts.ini firewall_config.yml \
+            -e "allowed_8001_cidrs=${ALLOWED_8001_CIDRS}" \
+            -e 'ansible_ssh_common_args=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
